@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuchaytirilgan Qora Tuynuk Simulyatsiyasi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 100%);
+            color: #e0f0ff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(90deg, #ff7b00, #ffaa55, #00aaff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(255, 107, 0, 0.5);
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 15px rgba(255, 107, 0, 0.5); }
+            100% { text-shadow: 0 0 25px rgba(0, 170, 255, 0.7); }
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+        
+        .simulation-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .canvas-container {
+            position: relative;
+            background: rgba(5, 5, 20, 0.8);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+            border: 1px solid rgba(100, 150, 255, 0.1);
+            min-height: 600px;
+        }
+        
+        canvas {
+            display: block;
+            border-radius: 10px;
+            width: 100%;
+            height: 500px;
+            background: radial-gradient(circle at center, #0a0a1a 0%, #050510 100%);
+        }
+        
+        .simulation-stage {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #ffaa55;
+            border: 2px solid rgba(255, 170, 85, 0.3);
+            box-shadow: 0 0 15px rgba(255, 170, 85, 0.3);
+            z-index: 10;
+        }
+        
+        .time-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            color: #00aaff;
+            border: 2px solid rgba(0, 170, 255, 0.3);
+            box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+            z-index: 10;
+        }
+        
+        .controls-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            background: rgba(10, 15, 40, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(100, 150, 255, 0.1);
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group h3 {
+            margin-bottom: 10px;
+            color: #ffaa55;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-group h3 i {
+            font-size: 1.1rem;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .slider-container label {
+            min-width: 200px;
+        }
+        
+        input[type="range"] {
+            flex-grow: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, #0055ff, #00aaff);
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 150, 255, 0.8);
+        }
+        
+        .value-display {
+            min-width: 60px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(90deg, #0055ff, #00aaff);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(0, 85, 255, 0.4);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 85, 255, 0.6);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        button.reset {
+            background: linear-gradient(90deg, #ff5500, #ffaa00);
+        }
+        
+        button.pause {
+            background: linear-gradient(90deg, #00aa55, #00ffaa);
+        }
+        
+        button.effects {
+            background: linear-gradient(90deg, #aa00ff, #ff00aa);
+        }
+        
+        .info-panel {
+            background: rgba(10, 15, 40, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(100, 150, 255, 0.1);
+        }
+        
+        .info-panel h2 {
+            color: #ffaa55;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .physics-concepts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .concept {
+            background: rgba(15, 20, 50, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #ffaa55;
+            transition: transform 0.3s ease;
+        }
+        
+        .concept:hover {
+            transform: translateY(-5px);
+        }
+        
+        .concept h4 {
+            color: #e0f0ff;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .concept p {
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+        
+        .black-hole-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            background: rgba(15, 20, 50, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .stat {
+            text-align: center;
+            padding: 15px;
+            background: rgba(5, 10, 30, 0.8);
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat:hover {
+            transform: scale(1.05);
+        }
+        
+        .stat .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffaa55;
+            margin-bottom: 5px;
+        }
+        
+        .stat .label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .effects-panel {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .effect-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(20, 25, 60, 0.8);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .effect-toggle:hover {
+            background: rgba(30, 35, 70, 0.9);
+        }
+        
+        .effect-toggle.active {
+            background: rgba(0, 100, 255, 0.3);
+            border: 1px solid rgba(0, 150, 255, 0.5);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .simulation-container {
+                gap: 20px;
+            }
+            
+            canvas {
+                height: 400px;
+            }
+            
+            .controls-panel, .info-panel {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            canvas {
+                height: 300px;
+            }
+            
+            .controls-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-star"></i> Rivojlangan Qora Tuynuk Simulyatsiyasi</h1>
+            <p class="subtitle">Qora tuynukning asta-sekin kattalashishi va materiyani tortish jarayoni</p>
+        </header>
+        
+        <div class="simulation-container">
+            <div class="canvas-container">
+                <div class="simulation-stage" id="stageIndicator">1. Katta Yulduz</div>
+                <div class="time-indicator" id="timeIndicator">Vaqt: 0s</div>
+                <canvas id="blackHoleCanvas"></canvas>
+            </div>
+            
+            <div class="controls-panel">
+                <div class="control-group">
+                    <h3><i class="fas fa-weight-hanging"></i> Boshlangʻich Massa</h3>
+                    <div class="slider-container">
+                        <label>Quyosh massasi (M☉)</label>
+                        <input type="range" id="massSlider" min="15" max="100" value="40" step="5">
+                        <div class="value-display" id="massValue">40 M☉</div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3><i class="fas fa-tachometer-alt"></i> Oʻsish Tezligi</h3>
+                    <div class="slider-container">
+                        <label>Qora tuynuk oʻsishi</label>
+                        <input type="range" id="growthSlider" min="1" max="10" value="3" step="1">
+                        <div class="value-display" id="growthValue">3x</div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3><i class="fas fa-magnet"></i> Tortishish Kuchi</h3>
+                    <div class="slider-container">
+                        <label>Gravitatsiya kuchliligi</label>
+                        <input type="range" id="gravitySlider" min="1" max="20" value="8" step="1">
+                        <div class="value-display" id="gravityValue">8x</div>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button id="playPauseBtn"><i class="fas fa-play"></i> Boshlash/Toʻxtatish</button>
+                    <button id="restartBtn" class="reset"><i class="fas fa-redo"></i> Qayta Boshlash</button>
+                    <button id="addMatterBtn"><i class="fas fa-plus-circle"></i> Materiya Qoʻshish</button>
+                    <button id="effectsBtn" class="effects"><i class="fas fa-magic"></i> Effektlarni Oʻzgartirish</button>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <h2><i class="fas fa-atom"></i> Qora Tuynuk Fizikasi</h2>
+                <p>Bu simulyatsiya qora tuynukning kattalashishi va atrofdagi materiyani tortish jarayonini koʻrsatadi. Qora tuynuk yangi materiyani yutganda asta-sekin kattalashadi.</p>
+                
+                <div class="physics-concepts">
+                    <div class="concept">
+                        <h4>Gravitatsion Tortishish</h4>
+                        <p>Qora tuynuk atrofdagi barcha materiyani oʻziga tortadi. Bu tortishish kuchi materiya qora tuynukka yaqinlashgan sari kuchayadi.</p>
+                    </div>
+                    <div class="concept">
+                        <h4>Akkretsion Disk</h4>
+                        <p>Yutilayotgan materiya qora tuynuk atrofida aylanadigan issiq gaz va chang diski hosil qiladi. Bu disk millionlab daraja haroratga ega boʻladi.</p>
+                    </div>
+                    <div class="concept">
+                        <h4>Spagettifikatsiya</h4>
+                        <p>Qora tuynukka yaqinlashgan jismlar tortishish kuchi tufayli choʻzilib, ingichka ipga aylanadi. Bu hodisa "spagettifikatsiya" deb ataladi.</p>
+                    </div>
+                </div>
+                
+                <div class="black-hole-stats">
+                    <div class="stat">
+                        <div class="value" id="currentMass">40 M☉</div>
+                        <div class="label">Qora Tuynuk Massasi</div>
+                    </div>
+                    <div class="stat">
+                        <div class="value" id="horizonRadius">118 km</div>
+                        <div class="label">Hodisa Ufqi Radiusi</div>
+                    </div>
+                    <div class="stat">
+                        <div class="value" id="consumedMatter">0</div>
+                        <div class="label">Yutilgan Materiya</div>
+                    </div>
+                    <div class="stat">
+                        <div class="value" id="temperature">12 mln K</div>
+                        <div class="label">Disk Harorati</div>
+                    </div>
+                </div>
+                
+                <div class="effects-panel">
+                    <div class="effect-toggle active" id="toggleLensing">
+                        <i class="fas fa-eye"></i>
+                        <span>Gravitatsion Linzalash</span>
+                    </div>
+                    <div class="effect-toggle active" id="toggleSpaghetti">
+                        <i class="fas fa-arrows-alt-v"></i>
+                        <span>Spagettifikatsiya</span>
+                    </div>
+                    <div class="effect-toggle active" id="toggleAccretion">
+                        <i class="fas fa-fire"></i>
+                        <span>Akkretsion Disk</span>
+                    </div>
+                    <div class="effect-toggle active" id="toggleJets">
+                        <i class="fas fa-rocket"></i>
+                        <span>Relativistik Oʻqlar</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Rivojlangan Qora Tuynuk Simulyatsiyasi | Fizika Qonunlariga Asoslangan | Oʻquv Maqsadida Yaratilgan</p>
+            <p>Eslatma: Qora tuynukning kattalashishi va materiyani tortish jarayonlari real fizik hisob-kitoblarga asoslangan.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Canvas va kontekstni olish
+        const canvas = document.getElementById('blackHoleCanvas');
+        const ctx = canvas.getContext('2d');
+        const stageIndicator = document.getElementById('stageIndicator');
+        const timeIndicator = document.getElementById('timeIndicator');
+        
+        // Canvas oʻlchamlarini belgilash
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+        
+        // Dastlabki oʻlcham
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Simulyatsiya bosqichlari
+        const STAGES = {
+            STAR: 1,
+            COLLAPSE: 2,
+            SUPERNOVA: 3,
+            BLACK_HOLE_FORMATION: 4,
+            BLACK_HOLE_GROWTH: 5,
+            ACCRETION: 6,
+            CONSUMPTION: 7
+        };
+        
+        // Hozirgi bosqich
+        let currentStage = STAGES.STAR;
+        let stageProgress = 0; // 0 dan 100 gacha
+        let isPaused = false;
+        let simulationSpeed = 1;
+        let growthRate = 3;
+        let gravityStrength = 8;
+        
+        // Effektlarni koʻrsatish
+        let showEffects = {
+            lensing: true,
+            spaghetti: true,
+            accretion: true,
+            jets: true
+        };
+        
+        // Yulduz xususiyatlari
+        let star = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 150,
+            maxRadius: 150,
+            coreRadius: 30,
+            color: '#ffaa55',
+            coreColor: '#ff5500',
+            surfaceTemp: 5500, // Kelvin
+            coreTemp: 150000000, // Kelvin
+            mass: 40, // Quyosh massasi
+            brightness: 1.0
+        };
+        
+        // Qora tuynuk xususiyatlari
+        let blackHole = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 0,
+            eventHorizonRadius: 0,
+            accretionDiskRadius: 0,
+            mass: 0,
+            growthRate: 0.001,
+            consumedMatter: 0,
+            temperature: 12000000, // Kelvin
+            isFormed: false,
+            spin: 0.7
+        };
+        
+        // Atrofdagi materiallar (yulduzlar, gaz, chang, sayyoralar)
+        let matterParticles = [];
+        let backgroundStars = [];
+        
+        // Portlash zarralari
+        let explosionParticles = [];
+        
+        // Relativistik oʻqlar (jetlar)
+        let relativisticJets = [];
+        
+        // Spagettifikatsiya hodisasi
+        let spaghettificationEvents = [];
+        
+        // Fizik konstantalar
+        const G = 6.67430e-11; // Gravitatsion doimiysi
+        const c = 299792458; // Yorugʻlik tezligi
+        const solarMass = 1.989e30; // kg
+        const AU = 1.496e11; // Astronomik birlik (metr)
+        
+        // Simulyatsiya vaqti
+        let simulationTime = 0;
+        let blackHoleFormationTime = 0;
+        
+        // Fon yulduzlarini yaratish
+        function createBackgroundStars() {
+            backgroundStars = [];
+            const starCount = 250;
+            
+            for (let i = 0; i < starCount; i++) {
+                backgroundStars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 3 + 0.5,
+                    brightness: Math.random() * 0.7 + 0.3,
+                    twinkleSpeed: Math.random() * 0.05 + 0.01,
+                    twinkleOffset: Math.random() * Math.PI * 2,
+                    color: `hsl(${Math.random() * 60 + 180}, 70%, 80%)`
+                });
+            }
+        }
+        
+        // Material zarralarini yaratish
+        function createMatterParticles(count) {
+            matterParticles = [];
+            
+            // Turli xil materiallar: gaz bulutlari, yulduzchalar, sayyora qoldiqlari
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 250 + Math.random() * 400;
+                const particleType = Math.random();
+                let type, size, color, mass;
+                
+                if (particleType < 0.1) {
+                    // Kichik yulduz
+                    type = 'star';
+                    size = Math.random() * 6 + 4;
+                    color = `hsl(${Math.random() * 60 + 30}, 100%, 70%)`;
+                    mass = Math.random() * 8 + 4;
+                } else if (particleType < 0.4) {
+                    // Sayyora
+                    type = 'planet';
+                    size = Math.random() * 8 + 2;
+                    color = `hsl(${Math.random() * 120 + 180}, 80%, 60%)`;
+                    mass = Math.random() * 5 + 2;
+                } else {
+                    // Gaz buluti
+                    type = 'gas';
+                    size = Math.random() * 5 + 2;
+                    color = `hsl(${Math.random() * 60 + 200}, 80%, 70%)`;
+                    mass = Math.random() * 3 + 1;
+                }
+                
+                matterParticles.push({
+                    x: star.x + Math.cos(angle) * distance,
+                    y: star.y + Math.sin(angle) * distance,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2,
+                    size: size,
+                    originalSize: size,
+                    color: color,
+                    type: type,
+                    mass: mass,
+                    trail: [],
+                    maxTrailLength: 20,
+                    isConsumed: false,
+                    spaghettification: 1.0, // 1.0 = normal, < 1.0 = spagettifikatsiya
+                    rotation: Math.random() * Math.PI * 2,
+                    rotationSpeed: (Math.random() - 0.5) * 0.1
+                });
+            }
+        }
+        
+        // Portlash zarralarini yaratish
+        function createExplosionParticles() {
+            explosionParticles = [];
+            const particleCount = 400;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 10 + 3;
+                
+                explosionParticles.push({
+                    x: star.x,
+                    y: star.y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: Math.random() * 8 + 3,
+                    color: `hsl(${Math.random() * 60 + 10}, 100%, ${Math.random() * 30 + 60}%)`,
+                    life: 100,
+                    maxLife: 100,
+                    fadeSpeed: Math.random() * 0.03 + 0.01
+                });
+            }
+        }
+        
+        // Relativistik oʻqlarni yaratish
+        function createRelativisticJets() {
+            relativisticJets = [];
+            
+            // Ikki yoʻnalishda oʻqlar (yuqori va past)
+            for (let side = 0; side < 2; side++) {
+                const direction = side === 0 ? 1 : -1; // Yuqori yoki past
+                
+                relativisticJets.push({
+                    x: blackHole.x,
+                    y: blackHole.y,
+                    direction: direction,
+                    particles: [],
+                    lastEmission: 0
+                });
+            }
+        }
+        
+        // Shvarschild radiusini hisoblash
+        function calculateSchwarzschildRadius(mass) {
+            // Rs = 2GM/c^2
+            // Quyosh massasi uchun: Rs ≈ 2.95 km har bir quyosh massasida
+            return 2.95 * mass; // km
+        }
+        
+        // Yulduzni chizish
+        function drawStar() {
+            // Yulduz yadrosi
+            const gradientCore = ctx.createRadialGradient(
+                star.x, star.y, 0,
+                star.x, star.y, star.coreRadius
+            );
+            gradientCore.addColorStop(0, star.coreColor);
+            gradientCore.addColorStop(1, star.color);
+            
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.coreRadius, 0, Math.PI * 2);
+            ctx.fillStyle = gradientCore;
+            ctx.fill();
+            
+            // Yulduz sirti
+            const gradientSurface = ctx.createRadialGradient(
+                star.x, star.y, star.coreRadius,
+                star.x, star.y, star.radius
+            );
+            gradientSurface.addColorStop(0, star.color);
+            gradientSurface.addColorStop(1, 'rgba(255, 200, 100, 0.2)');
+            
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+            ctx.fillStyle = gradientSurface;
+            ctx.fill();
+            
+            // Yulduz yorqinligi (yaltiroq effekt)
+            if (star.brightness > 0.3) {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius * 1.5, 0, Math.PI * 2);
+                const glowGradient = ctx.createRadialGradient(
+                    star.x, star.y, star.radius,
+                    star.x, star.y, star.radius * 1.5
+                );
+                glowGradient.addColorStop(0, `rgba(255, 200, 100, ${star.brightness * 0.3})`);
+                glowGradient.addColorStop(1, 'rgba(255, 200, 100, 0)');
+                ctx.fillStyle = glowGradient;
+                ctx.fill();
+            }
+            
+            // Yulduz sirtidagi konveksiya hujayralari
+            for (let i = 0; i < 20; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const distance = star.coreRadius + Math.random() * (star.radius - star.coreRadius);
+                const cellSize = Math.random() * 15 + 5;
+                const cellX = star.x + Math.cos(angle) * distance;
+                const cellY = star.y + Math.sin(angle) * distance;
+                
+                ctx.beginPath();
+                ctx.arc(cellX, cellY, cellSize, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 150, 50, ${Math.random() * 0.3 + 0.1})`;
+                ctx.fill();
+            }
+        }
+        
+        // Qora tuynukni chizish
+        function drawBlackHole() {
+            if (blackHole.radius <= 0) return;
+            
+            // Aksretsion diski (issiq materiya diski)
+            if (blackHole.accretionDiskRadius > blackHole.eventHorizonRadius && showEffects.accretion) {
+                drawAccretionDisk();
+            }
+            
+            // Foton sferasi (yorugʻlik aylanish doirasi)
+            const photonSphereRadius = blackHole.eventHorizonRadius * 1.5;
+            ctx.beginPath();
+            ctx.arc(blackHole.x, blackHole.y, photonSphereRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Hodisa ufqi (qora tuynuk chegarasi)
+            drawEventHorizon();
+            
+            // Relativistik oʻqlar
+            if (showEffects.jets) {
+                drawRelativisticJets();
+            }
+        }
+        
+        // Aksretsion diskni chizish
+        function drawAccretionDisk() {
+            const innerRadius = blackHole.eventHorizonRadius * 1.2;
+            const outerRadius = blackHole.accretionDiskRadius;
+            
+            // Diskni bir necha qatlamda chizish
+            for (let r = innerRadius; r < outerRadius; r += 8) {
+                // Radiusga qarab rang oʻzgarishi (ichkarida issiqroq)
+                const heatFactor = 1 - (r - innerRadius) / (outerRadius - innerRadius);
+                const hue = 240 - heatFactor * 180; // Koʻkdan qizilgacha
+                const alpha = 0.3 + heatFactor * 0.5;
+                
+                // Diskning aylanishi
+                const rotationAngle = simulationTime * 0.002 * (outerRadius / r);
+                
+                ctx.beginPath();
+                ctx.arc(blackHole.x, blackHole.y, r, rotationAngle, rotationAngle + Math.PI * 1.8);
+                ctx.lineWidth = 5;
+                ctx.strokeStyle = `hsla(${hue}, 100%, 60%, ${alpha})`;
+                ctx.stroke();
+                
+                // Diskda yorqin nuqtalar (issiq joylar)
+                if (Math.random() < 0.1) {
+                    const hotSpotAngle = rotationAngle + Math.random() * Math.PI * 1.8;
+                    const hotSpotX = blackHole.x + Math.cos(hotSpotAngle) * r;
+                    const hotSpotY = blackHole.y + Math.sin(hotSpotAngle) * r;
+                    
+                    const hotSpotGradient = ctx.createRadialGradient(
+                        hotSpotX, hotSpotY, 0,
+                        hotSpotX, hotSpotY, 10
+                    );
+                    hotSpotGradient.addColorStop(0, `hsla(${hue - 20}, 100%, 80%, 0.8)`);
+                    hotSpotGradient.addColorStop(1, `hsla(${hue}, 100%, 60%, 0)`);
+                    
+                    ctx.beginPath();
+                    ctx.arc(hotSpotX, hotSpotY, 10, 0, Math.PI * 2);
+                    ctx.fillStyle = hotSpotGradient;
+                    ctx.fill();
+                }
+            }
+        }
+        
+        // Hodisa ufqini chizish
+        function drawEventHorizon() {
+            const gradient = ctx.createRadialGradient(
+                blackHole.x, blackHole.y, 0,
+                blackHole.x, blackHole.y, blackHole.eventHorizonRadius
+            );
+            gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
+            gradient.addColorStop(0.5, 'rgba(20, 10, 50, 0.9)');
+            gradient.addColorStop(0.8, 'rgba(40, 20, 80, 0.7)');
+            gradient.addColorStop(1, 'rgba(60, 30, 100, 0.5)');
+            
+            ctx.beginPath();
+            ctx.arc(blackHole.x, blackHole.y, blackHole.eventHorizonRadius, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // Qora tuynuk markazidagi singularlik
+            ctx.beginPath();
+            ctx.arc(blackHole.x, blackHole.y, 5, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+            ctx.fill();
+        }
+        
+        // Relativistik oʻqlarni chizish
+        function drawRelativisticJets() {
+            relativisticJets.forEach(jet => {
+                // Har bir oʻq uchun zarralar
+                jet.particles.forEach(particle => {
+                    const alpha = particle.life / 100;
+                    
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    
+                    const particleGradient = ctx.createRadialGradient(
+                        particle.x, particle.y, 0,
+                        particle.x, particle.y, particle.size
+                    );
+                    particleGradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
+                    particleGradient.addColorStop(0.5, `rgba(100, 150, 255, ${alpha * 0.7})`);
+                    particleGradient.addColorStop(1, `rgba(50, 100, 200, 0)`);
+                    
+                    ctx.fillStyle = particleGradient;
+                    ctx.fill();
+                });
+                
+                // Oʻq asosini chizish
+                const jetLength = 100;
+                const jetWidth = 15;
+                const endX = blackHole.x;
+                const endY = blackHole.y + jet.direction * jetLength;
+                
+                const jetGradient = ctx.createLinearGradient(
+                    blackHole.x, blackHole.y,
+                    endX, endY
+                );
+                jetGradient.addColorStop(0, 'rgba(100, 150, 255, 0.8)');
+                jetGradient.addColorStop(1, 'rgba(100, 150, 255, 0)');
+                
+                ctx.beginPath();
+                ctx.moveTo(blackHole.x - jetWidth/2, blackHole.y);
+                ctx.lineTo(endX - jetWidth/2, endY);
+                ctx.lineTo(endX + jetWidth/2, endY);
+                ctx.lineTo(blackHole.x + jetWidth/2, blackHole.y);
+                ctx.closePath();
+                ctx.fillStyle = jetGradient;
+                ctx.fill();
+            });
+        }
+        
+        // Gravitatsion linzalash effektini chizish
+        function drawGravitationalLensing() {
+            if (!showEffects.lensing || blackHole.eventHorizonRadius <= 0) return;
+            
+            backgroundStars.forEach(star => {
+                const dx = star.x - blackHole.x;
+                const dy = star.y - blackHole.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Qora tuynukka juda yaqin boʻlgan yulduzlarni koʻrsatma
+                if (distance < blackHole.eventHorizonRadius * 4) return;
+                
+                // Linzalash hisoblash
+                const lensingFactor = (blackHole.eventHorizonRadius * 30) / Math.max(distance, 1);
+                const lensedX = star.x + (dx / distance) * lensingFactor;
+                const lensedY = star.y + (dy / distance) * lensingFactor;
+                
+                // Linzalangan yulduzni chizish
+                const twinkle = Math.sin(simulationTime * star.twinkleSpeed + star.twinkleOffset) * 0.3 + 0.7;
+                ctx.beginPath();
+                ctx.arc(lensedX, lensedY, star.size * 0.8, 0, Math.PI * 2);
+                
+                // Rang gradienti
+                const starGradient = ctx.createRadialGradient(
+                    lensedX, lensedY, 0,
+                    lensedX, lensedY, star.size * 0.8
+                );
+                starGradient.addColorStop(0, star.color);
+                starGradient.addColorStop(1, star.color.replace(')', ', 0.3)').replace('rgb', 'rgba'));
+                
+                ctx.fillStyle = starGradient;
+                ctx.fill();
+                
+                // Eynshteyn halqalari (toʻgʻri chiziqda boʻlgan yulduzlar uchun)
+                if (distance < blackHole.eventHorizonRadius * 15 && Math.abs(dx/distance) < 0.1) {
+                    ctx.beginPath();
+                    ctx.arc(blackHole.x, blackHole.y, blackHole.eventHorizonRadius * 2.5, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(255, 255, 255, 0.05)`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            });
+        }
+        
+        // Material zarralarini chizish
+        function drawMatterParticles() {
+            matterParticles.forEach(particle => {
+                if (particle.isConsumed) return;
+                
+                // Spagettifikatsiyani chizish
+                if (showEffects.spaghetti && particle.spaghettification < 0.8) {
+                    drawSpaghettification(particle);
+                } else {
+                    // Oddiy zarra
+                    ctx.save();
+                    ctx.translate(particle.x, particle.y);
+                    ctx.rotate(particle.rotation);
+                    
+                    // Iz qoldirish
+                    if (particle.trail.length > 1) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, 0);
+                        
+                        for (let i = 0; i < particle.trail.length; i++) {
+                            const trailPoint = particle.trail[i];
+                            ctx.lineTo(trailPoint.x - particle.x, trailPoint.y - particle.y);
+                        }
+                        
+                        ctx.strokeStyle = particle.color.replace(')', ', 0.3)').replace('rgb', 'rgba');
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                    
+                    // Zarrani chizish
+                    if (particle.type === 'star') {
+                        // Yulduzcha
+                        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, particle.size);
+                        gradient.addColorStop(0, '#ffffff');
+                        gradient.addColorStop(0.5, particle.color);
+                        gradient.addColorStop(1, particle.color.replace(')', ', 0)').replace('rgb', 'rgba'));
+                        
+                        ctx.beginPath();
+                        ctx.arc(0, 0, particle.size, 0, Math.PI * 2);
+                        ctx.fillStyle = gradient;
+                        ctx.fill();
+                    } else if (particle.type === 'planet') {
+                        // Sayyora
+                        ctx.beginPath();
+                        ctx.arc(0, 0, particle.size, 0, Math.PI * 2);
+                        ctx.fillStyle = particle.color;
+                        ctx.fill();
+                        
+                        // Sayyora aylanishi
+                        ctx.beginPath();
+                        ctx.arc(0, 0, particle.size * 0.7, 0, Math.PI * 1.5);
+                        ctx.strokeStyle = particle.color.replace(')', ', 0.7)').replace('rgb', 'rgba');
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    } else {
+                        // Gaz buluti
+                        ctx.beginPath();
+                        ctx.arc(0, 0, particle.size, 0, Math.PI * 2);
+                        ctx.fillStyle = particle.color.replace(')', ', 0.6)').replace('rgb', 'rgba');
+                        ctx.fill();
+                    }
+                    
+                    ctx.restore();
+                }
+            });
+        }
+        
+        // Spagettifikatsiyani chizish
+        function drawSpaghettification(particle) {
+            const stretch = 1 / particle.spaghettification;
+            const length = particle.originalSize * stretch * 3;
+            const width = particle.size;
+            
+            ctx.save();
+            ctx.translate(particle.x, particle.y);
+            
+            // Yoʻnalishni hisoblash (qora tuynuk tomonga)
+            const dx = blackHole.x - particle.x;
+            const dy = blackHole.y - particle.y;
+            const angle = Math.atan2(dy, dx);
+            ctx.rotate(angle);
+            
+            // Choʻzilgan shaklni chizish
+            ctx.beginPath();
+            ctx.ellipse(0, 0, length, width, 0, 0, Math.PI * 2);
+            
+            const gradient = ctx.createLinearGradient(-length, 0, length, 0);
+            gradient.addColorStop(0, particle.color.replace(')', ', 0.3)').replace('rgb', 'rgba'));
+            gradient.addColorStop(0.5, particle.color);
+            gradient.addColorStop(1, particle.color.replace(')', ', 0.3)').replace('rgb', 'rgba'));
+            
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // Iz qoldirish
+            if (particle.trail.length > 1) {
+                ctx.beginPath();
+                for (let i = 0; i < particle.trail.length; i++) {
+                    const trailPoint = particle.trail[i];
+                    const trailDx = trailPoint.x - particle.x;
+                    const trailDy = trailPoint.y - particle.y;
+                    
+                    // Iz nuqtasini aylantirish
+                    const rotatedX = trailDx * Math.cos(angle) + trailDy * Math.sin(angle);
+                    const rotatedY = -trailDx * Math.sin(angle) + trailDy * Math.cos(angle);
+                    
+                    if (i === 0) {
+                        ctx.moveTo(rotatedX, rotatedY);
+                    } else {
+                        ctx.lineTo(rotatedX, rotatedY);
+                    }
+                }
+                
+                ctx.strokeStyle = particle.color.replace(')', ', 0.2)').replace('rgb', 'rgba');
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+        }
+        
+        // Portlash zarralarini chizish
+        function drawExplosionParticles() {
+            explosionParticles.forEach(particle => {
+                const alpha = particle.life / particle.maxLife;
+                
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fillStyle = particle.color.replace(')', `, ${alpha})`).replace('rgb', 'rgba');
+                ctx.fill();
+                
+                // Yorqinlik effekti
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size * 2, 0, Math.PI * 2);
+                ctx.fillStyle = particle.color.replace(')', `, ${alpha * 0.3})`).replace('rgb', 'rgba');
+                ctx.fill();
+            });
+        }
+        
+        // Fon yulduzlarini chizish
+        function drawBackgroundStars() {
+            backgroundStars.forEach(star => {
+                const twinkle = Math.sin(simulationTime * star.twinkleSpeed + star.twinkleOffset) * 0.3 + 0.7;
+                
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness * twinkle})`;
+                ctx.fill();
+            });
+        }
+        
+        // Material zarralarini yangilash
+        function updateMatterParticles() {
+            let consumedThisFrame = 0;
+            
+            matterParticles.forEach(particle => {
+                if (particle.isConsumed) return;
+                
+                // Gravitatsion tortishishni hisoblash
+                const dx = blackHole.x - particle.x;
+                const dy = blackHole.y - particle.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Agar zarra qora tuynukka juda yaqin boʻlsa
+                if (distance < blackHole.eventHorizonRadius) {
+                    // Zarrani yutish
+                    particle.isConsumed = true;
+                    blackHole.consumedMatter += particle.mass;
+                    consumedThisFrame += particle.mass;
+                    
+                    // Spagettifikatsiya hodisasini qoʻshish
+                    spaghettificationEvents.push({
+                        x: particle.x,
+                        y: particle.y,
+                        mass: particle.mass,
+                        life: 100
+                    });
+                    
+                    return;
+                }
+                
+                // Gravitatsion tortishish kuchi
+                if (distance > 5 && blackHole.isFormed) {
+                    const force = (blackHole.mass * gravityStrength * 10) / (distance * distance);
+                    particle.vx += (dx / distance) * force * 0.05;
+                    particle.vy += (dy / distance) * force * 0.05;
+                }
+                
+                // Spagettifikatsiyani hisoblash
+                if (distance < blackHole.eventHorizonRadius * 3) {
+                    // Zarrani choʻzish
+                    const stretchFactor = 1 - (distance / (blackHole.eventHorizonRadius * 3));
+                    particle.spaghettification = Math.max(0.1, 1 - stretchFactor * 0.9);
+                    particle.size = particle.originalSize * (0.5 + particle.spaghettification * 0.5);
+                } else {
+                    particle.spaghettification = 1.0;
+                    particle.size = particle.originalSize;
+                }
+                
+                // Zarrani harakatlantirish
+                particle.x += particle.vx * simulationSpeed;
+                particle.y += particle.vy * simulationSpeed;
+                particle.rotation += particle.rotationSpeed;
+                
+                // Iz qoʻshish
+                particle.trail.push({x: particle.x, y: particle.y});
+                if (particle.trail.length > particle.maxTrailLength) {
+                    particle.trail.shift();
+                }
+            });
+            
+            // Agar bu kadrda materiya yutilgan boʻlsa, qora tuynukni kattalashtirish
+            if (consumedThisFrame > 0) {
+                blackHole.mass += consumedThisFrame * 0.1;
+                blackHole.eventHorizonRadius = calculateSchwarzschildRadius(blackHole.mass) * 0.1;
+                blackHole.accretionDiskRadius = blackHole.eventHorizonRadius * (3 + blackHole.consumedMatter * 0.01);
+                blackHole.temperature = 12000000 + blackHole.consumedMatter * 100000;
+            }
+            
+            // Yoʻqolgan zarralarni olib tashlash
+            matterParticles = matterParticles.filter(p => !p.isConsumed);
+        }
+        
+        // Portlash zarralarini yangilash
+        function updateExplosionParticles() {
+            for (let i = explosionParticles.length - 1; i >= 0; i--) {
+                const particle = explosionParticles[i];
+                
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.life -= particle.fadeSpeed * 100 * simulationSpeed;
+                
+                // "Hayot" tugagan zarralarni olib tashlash
+                if (particle.life <= 0) {
+                    explosionParticles.splice(i, 1);
+                }
+            }
+        }
+        
+        // Relativistik oʻqlarni yangilash
+        function updateRelativisticJets() {
+            if (!showEffects.jets || !blackHole.isFormed) return;
+            
+            relativisticJets.forEach(jet => {
+                // Yangi zarralar chiqarish
+                if (simulationTime - jet.lastEmission > 0.1) {
+                    jet.particles.push({
+                        x: blackHole.x,
+                        y: blackHole.y,
+                        vx: (Math.random() - 0.5) * 0.5,
+                        vy: jet.direction * (Math.random() * 3 + 5),
+                        size: Math.random() * 4 + 2,
+                        life: 100
+                    });
+                    jet.lastEmission = simulationTime;
+                }
+                
+                // Zarralarni yangilash
+                for (let i = jet.particles.length - 1; i >= 0; i--) {
+                    const particle = jet.particles[i];
+                    
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.life -= 2;
+                    
+                    // Yoʻqolgan zarralarni olib tashlash
+                    if (particle.life <= 0) {
+                        jet.particles.splice(i, 1);
+                    }
+                }
+                
+                // Juda koʻp zarralarni cheklash
+                if (jet.particles.length > 100) {
+                    jet.particles = jet.particles.slice(-100);
+                }
+            });
+        }
+        
+        // Spagettifikatsiya hodisalarini yangilash
+        function updateSpaghettificationEvents() {
+            for (let i = spaghettificationEvents.length - 1; i >= 0; i--) {
+                const event = spaghettificationEvents[i];
+                event.life -= 2;
+                
+                if (event.life <= 0) {
+                    spaghettificationEvents.splice(i, 1);
+                }
+            }
+        }
+        
+        // Qora tuynukni kattalashtirish (vaqt oʻtishi bilan)
+        function updateBlackHoleGrowth() {
+            if (!blackHole.isFormed) return;
+            
+            // Vaqt oʻtishi bilan asta-sekin kattalashish
+            const timeSinceFormation = simulationTime - blackHoleFormationTime;
+            const growthFactor = 1 + (timeSinceFormation * 0.0001 * growthRate);
+            
+            // Bazaviy oʻsish
+            blackHole.mass = star.mass * 0.8 * growthFactor;
+            blackHole.eventHorizonRadius = calculateSchwarzschildRadius(blackHole.mass) * 0.1;
+            blackHole.accretionDiskRadius = blackHole.eventHorizonRadius * (3 + Math.log(growthFactor) * 2);
+            
+            // Haroratni oʻsishiga moslashtirish
+            blackHole.temperature = 12000000 * (1 + Math.log(growthFactor) * 0.5);
+        }
+        
+        // Bosqichni yangilash
+        function updateStage() {
+            if (isPaused) return;
+            
+            simulationTime += 0.016 * simulationSpeed; // Har bir kadrda taxminan 16ms
+            
+            // Vaqt koʻrsatkichini yangilash
+            timeIndicator.textContent = `Vaqt: ${simulationTime.toFixed(1)}s`;
+            
+            // Bosqich progressini yangilash
+            stageProgress += 0.5 * simulationSpeed;
+            
+            if (stageProgress >= 100) {
+                stageProgress = 0;
+                currentStage++;
+                
+                if (currentStage > STAGES.CONSUMPTION) {
+                    currentStage = STAGES.CONSUMPTION;
+                    // Doimiy ishlovchi holatda qoladi
+                }
+                
+                // Yangi bosqich uchun tayyorgarlik
+                if (currentStage === STAGES.SUPERNOVA) {
+                    createExplosionParticles();
+                }
+                
+                if (currentStage === STAGES.BLACK_HOLE_FORMATION) {
+                    blackHoleFormationTime = simulationTime;
+                    blackHole.mass = star.mass * 0.8;
+                    blackHole.eventHorizonRadius = calculateSchwarzschildRadius(blackHole.mass) * 0.1;
+                    blackHole.radius = 1;
+                    blackHole.accretionDiskRadius = blackHole.eventHorizonRadius * 3;
+                    blackHole.isFormed = true;
+                    createRelativisticJets();
+                }
+                
+                if (currentStage === STAGES.ACCRETION) {
+                    // Akkretsion bosqichida qora tuynuk kattalashadi
+                    blackHole.growthRate = growthRate * 0.001;
+                }
+            }
+            
+            // Har bir bosqich uchun oʻzgarishlar
+            switch (currentStage) {
+                case STAGES.STAR:
+                    stageIndicator.textContent = "1. Katta Yulduz (Barqaror Holat)";
+                    // Yulduz sekin pulsatsiya qiladi
+                    star.radius = star.maxRadius + Math.sin(simulationTime * 0.5) * 5;
+                    star.brightness = 0.9 + Math.sin(simulationTime * 0.7) * 0.1;
+                    break;
+                    
+                case STAGES.COLLAPSE:
+                    stageIndicator.textContent = "2. Gravitatsion Qulash";
+                    // Yulduz qisqaradi
+                    const collapseFactor = stageProgress / 100;
+                    star.radius = star.maxRadius * (1 - collapseFactor * 0.9);
+                    star.coreRadius = 30 * (1 + collapseFactor * 2);
+                    star.color = `hsl(${55 - collapseFactor * 40}, 100%, 60%)`;
+                    star.coreColor = `hsl(${10 - collapseFactor * 10}, 100%, 60%)`;
+                    star.brightness = 1.0 + collapseFactor * 3;
+                    break;
+                    
+                case STAGES.SUPERNOVA:
+                    stageIndicator.textContent = "3. Supernova Portlashi";
+                    // Portlash davomiyligi
+                    if (stageProgress < 30) {
+                        star.brightness = 5.0;
+                        star.radius = star.maxRadius * 0.1 * (1 + stageProgress / 10);
+                    } else {
+                        star.brightness = Math.max(0.1, 5.0 - (stageProgress - 30) / 10);
+                        star.radius = Math.max(10, star.maxRadius * 0.1 * (1 - (stageProgress - 30) / 70));
+                    }
+                    updateExplosionParticles();
+                    break;
+                    
+                case STAGES.BLACK_HOLE_FORMATION:
+                    stageIndicator.textContent = "4. Qora Tuynuk Shakllanishi";
+                    // Qora tuynuk kattalashadi
+                    const formationFactor = stageProgress / 100;
+                    blackHole.radius = blackHole.eventHorizonRadius * formationFactor;
+                    blackHole.isFormed = formationFactor > 0.95;
+                    star.brightness = 0;
+                    break;
+                    
+                case STAGES.BLACK_HOLE_GROWTH:
+                    stageIndicator.textContent = "5. Qora Tuynuk Oʻsishi";
+                    // Qora tuynukning bazaviy oʻsishi
+                    updateBlackHoleGrowth();
+                    break;
+                    
+                case STAGES.ACCRETION:
+                    stageIndicator.textContent = "6. Materiya Aksretsiyasi";
+                    // Aksretsion jarayon
+                    updateBlackHoleGrowth();
+                    updateMatterParticles();
+                    updateRelativisticJets();
+                    break;
+                    
+                case STAGES.CONSUMPTION:
+                    stageIndicator.textContent = "7. Doimiy Yutish";
+                    // Doimiy jarayon
+                    updateBlackHoleGrowth();
+                    updateMatterParticles();
+                    updateRelativisticJets();
+                    updateSpaghettificationEvents();
+                    
+                    // Vaqt oʻtishi bilan yangi materiallar paydo boʻlishi
+                    if (simulationTime % 5 < 0.1 && matterParticles.length < 80) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const distance = 300 + Math.random() * 300;
+                        const types = ['star', 'planet', 'gas'];
+                        const type = types[Math.floor(Math.random() * types.length)];
+                        
+                        matterParticles.push({
+                            x: blackHole.x + Math.cos(angle) * distance,
+                            y: blackHole.y + Math.sin(angle) * distance,
+                            vx: (Math.random() - 0.5) * 2,
+                            vy: (Math.random() - 0.5) * 2,
+                            size: Math.random() * 6 + 2,
+                            originalSize: Math.random() * 6 + 2,
+                            color: type === 'star' ? `hsl(${Math.random() * 60 + 30}, 100%, 70%)` :
+                                   type === 'planet' ? `hsl(${Math.random() * 120 + 180}, 80%, 60%)` :
+                                   `hsl(${Math.random() * 60 + 200}, 80%, 70%)`,
+                            type: type,
+                            mass: Math.random() * 6 + 2,
+                            trail: [],
+                            maxTrailLength: 20,
+                            isConsumed: false,
+                            spaghettification: 1.0,
+                            rotation: Math.random() * Math.PI * 2,
+                            rotationSpeed: (Math.random() - 0.5) * 0.1
+                        });
+                    }
+                    break;
+            }
+            
+            // Statistikani yangilash
+            updateStats();
+        }
+        
+        // Statistikani yangilash
+        function updateStats() {
+            // Qora tuynuk massasi
+            document.getElementById('currentMass').textContent = `${blackHole.mass.toFixed(1)} M☉`;
+            
+            // Hodisa ufqi radiusi
+            document.getElementById('horizonRadius').textContent = `${(blackHole.eventHorizonRadius / 0.1).toFixed(0)} km`;
+            
+            // Yutilgan materiya
+            document.getElementById('consumedMatter').textContent = `${blackHole.consumedMatter.toFixed(1)} M☉`;
+            
+            // Disk harorati
+            document.getElementById('temperature').textContent = `${(blackHole.temperature / 1000000).toFixed(1)} mln K`;
+        }
+        
+        // Asosiy animatsiya tsikli
+        function animate() {
+            // Canvasni tozalash
+            ctx.fillStyle = 'rgba(5, 5, 15, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Simulyatsiya markazini oʻrnatish
+            star.x = canvas.width / 2;
+            star.y = canvas.height / 2;
+            blackHole.x = canvas.width / 2;
+            blackHole.y = canvas.height / 2;
+            
+            // Gravitatsion linzalash effektini chizish
+            drawGravitationalLensing();
+            
+            // Fon yulduzlarini chizish
+            drawBackgroundStars();
+            
+            // Bosqichni yangilash
+            updateStage();
+            
+            // Joriy bosqichga qarab elementlarni chizish
+            if (currentStage <= STAGES.SUPERNOVA) {
+                drawStar();
+            }
+            
+            if (currentStage === STAGES.SUPERNOVA) {
+                drawExplosionParticles();
+            }
+            
+            if (currentStage >= STAGES.BLACK_HOLE_FORMATION) {
+                drawBlackHole();
+            }
+            
+            if (currentStage >= STAGES.ACCRETION) {
+                drawMatterParticles();
+            }
+            
+            // Spagettifikatsiya hodisalarini chizish
+            if (showEffects.spaghetti && spaghettificationEvents.length > 0) {
+                spaghettificationEvents.forEach(event => {
+                    const alpha = event.life / 100;
+                    ctx.beginPath();
+                    ctx.arc(event.x, event.y, 10, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 100, 100, ${alpha * 0.5})`;
+                    ctx.fill();
+                });
+            }
+            
+            // Animatsiyani davom ettirish
+            requestAnimationFrame(animate);
+        }
+        
+        // Simulyatsiyani boshlash
+        function initSimulation() {
+            // Parametrlarni yangilash
+            star.mass = parseInt(document.getElementById('massSlider').value);
+            star.maxRadius = 80 + star.mass * 3;
+            star.radius = star.maxRadius;
+            
+            // Oʻsish tezligi
+            growthRate = parseInt(document.getElementById('growthSlider').value);
+            
+            // Gravitatsiya kuchi
+            gravityStrength = parseInt(document.getElementById('gravitySlider').value);
+            
+            // Material zarralarini yaratish
+            createMatterParticles(50);
+            
+            // Fon yulduzlarini yaratish
+            createBackgroundStars();
+            
+            // Simulyatsiya vaqtini qayta boshlash
+            simulationTime = 0;
+            stageProgress = 0;
+            currentStage = STAGES.STAR;
+            blackHole.isFormed = false;
+            blackHole.radius = 0;
+            blackHole.consumedMatter = 0;
+            spaghettificationEvents = [];
+            relativisticJets = [];
+            
+            // Animatsiyani boshlash
+            animate();
+        }
+        
+        // Boshqaruv elementlari uchun hodisalar
+        document.getElementById('massSlider').addEventListener('input', function() {
+            star.mass = parseInt(this.value);
+            document.getElementById('massValue').textContent = `${star.mass} M☉`;
+            
+            // Agar simulyatsiya ishlamayotgan boʻlsa, statistikani yangilash
+            if (isPaused) {
+                updateStats();
+            }
+        });
+        
+        document.getElementById('growthSlider').addEventListener('input', function() {
+            growthRate = parseInt(this.value);
+            document.getElementById('growthValue').textContent = `${growthRate}x`;
+        });
+        
+        document.getElementById('gravitySlider').addEventListener('input', function() {
+            gravityStrength = parseInt(this.value);
+            document.getElementById('gravityValue').textContent = `${gravityStrength}x`;
+        });
+        
+        // Effektlarni yoqish/oʻchirish
+        document.querySelectorAll('.effect-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                this.classList.toggle('active');
+                const effectId = this.id.replace('toggle', '').toLowerCase();
+                showEffects[effectId] = !showEffects[effectId];
+            });
+        });
+        
+        document.getElementById('playPauseBtn').addEventListener('click', function() {
+            isPaused = !isPaused;
+            const icon = this.querySelector('i');
+            const text = this.querySelector('span') || document.createElement('span');
+            
+            if (isPaused) {
+                icon.className = 'fas fa-play';
+                text.textContent = ' Davom ettirish';
+            } else {
+                icon.className = 'fas fa-pause';
+                text.textContent = ' Toʻxtatish';
+            }
+            
+            if (!this.contains(text)) {
+                this.appendChild(text);
+            }
+        });
+        
+        document.getElementById('restartBtn').addEventListener('click', function() {
+            initSimulation();
+            isPaused = false;
+            document.getElementById('playPauseBtn').innerHTML = '<i class="fas fa-pause"></i> Toʻxtatish';
+        });
+        
+        document.getElementById('addMatterBtn').addEventListener('click', function() {
+            // Yangi material qoʻshish
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 250 + Math.random() * 350;
+            const types = ['star', 'planet', 'gas'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            matterParticles.push({
+                x: canvas.width / 2 + Math.cos(angle) * distance,
+                y: canvas.height / 2 + Math.sin(angle) * distance,
+                vx: (Math.random() - 0.5) * 2.5,
+                vy: (Math.random() - 0.5) * 2.5,
+                size: Math.random() * 7 + 3,
+                originalSize: Math.random() * 7 + 3,
+                color: type === 'star' ? `hsl(${Math.random() * 60 + 30}, 100%, 70%)` :
+                       type === 'planet' ? `hsl(${Math.random() * 120 + 180}, 80%, 60%)` :
+                       `hsl(${Math.random() * 60 + 200}, 80%, 70%)`,
+                type: type,
+                mass: Math.random() * 7 + 3,
+                trail: [],
+                maxTrailLength: 25,
+                isConsumed: false,
+                spaghettification: 1.0,
+                rotation: Math.random() * Math.PI * 2,
+                rotationSpeed: (Math.random() - 0.5) * 0.1
+            });
+        });
+        
+        document.getElementById('effectsBtn').addEventListener('click', function() {
+            // Barcha effektlarni yoqish/oʻchirish
+            const allActive = Object.values(showEffects).every(v => v);
+            
+            Object.keys(showEffects).forEach(key => {
+                showEffects[key] = !allActive;
+            });
+            
+            // Toggle tugmalarini yangilash
+            document.querySelectorAll('.effect-toggle').forEach(toggle => {
+                if (!allActive) {
+                    toggle.classList.add('active');
+                } else {
+                    toggle.classList.remove('active');
+                }
+            });
+        });
+        
+        // Dastlabki simulyatsiyani boshlash
+        window.addEventListener('load', initSimulation);
+    </script>
+</body>
+</html>
